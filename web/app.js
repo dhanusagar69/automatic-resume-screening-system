@@ -1,4 +1,6 @@
 const state = { payload: null, selected: 0 };
+const API_BASE = window.__API_BASE_URL__ || "";
+document.querySelector("#download-button").href = `${API_BASE}/api/results/download`;
 
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 const scoreMax = { ai_project_depth: 40, python_backend: 30, cloud_fullstack: 15, github: 10, engineering_depth: 5 };
@@ -34,8 +36,8 @@ function renderDetail(candidate) {
   panel.innerHTML = `<p class="eyebrow">CANDIDATE #${candidate.rank}</p><h2 class="detail-title">${escapeHtml(candidate.candidate_name)}</h2><div class="detail-file">${escapeHtml(candidate.source_file)}</div><p class="detail-summary">${escapeHtml(candidate.project_summary)}</p><div class="breakdown">${rows}</div><div class="evidence"><div class="evidence-title">Resume evidence</div>${(candidate.evidence || []).slice(0, 2).map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>`;
 }
 
-async function loadResults() { const response = await fetch("/api/results"); render(await response.json()); }
-async function runScreening() { const button = document.querySelector("#run-button"); const archive = document.querySelector("#archive-input").files[0]; const body = archive ? (() => { const form = new FormData(); form.append("archive", archive); return form; })() : undefined; button.disabled = true; button.innerHTML = "Screening..."; try { render(await (await fetch("/api/screen", { method: "POST", body })).json()); } finally { button.disabled = false; button.innerHTML = '<span class="play-icon">▶</span> Run screening'; } }
+async function loadResults() { const response = await fetch(`${API_BASE}/api/results`, { cache: "no-store" }); render(await response.json()); }
+async function runScreening() { const button = document.querySelector("#run-button"); const archive = document.querySelector("#archive-input").files[0]; const body = archive ? (() => { const form = new FormData(); form.append("archive", archive); return form; })() : undefined; button.disabled = true; button.innerHTML = "Screening..."; try { render(await (await fetch(`${API_BASE}/api/screen`, { method: "POST", body })).json()); } finally { button.disabled = false; button.innerHTML = '<span class="play-icon">▶</span> Run screening'; } }
 function updateFileStatus() { const input = document.querySelector("#archive-input"); const status = document.querySelector("#file-status"); const clear = document.querySelector("#clear-file"); const file = input.files[0]; status.textContent = file ? file.name : "No ZIP selected"; status.classList.toggle("has-file", Boolean(file)); clear.hidden = !file; }
 document.querySelector("#run-button").addEventListener("click", runScreening);
 document.querySelector("#archive-input").addEventListener("change", updateFileStatus);

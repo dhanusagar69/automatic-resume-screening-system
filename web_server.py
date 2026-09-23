@@ -2,7 +2,10 @@ import json
 import tempfile
 from pathlib import Path
 
+import os
+
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -14,6 +17,8 @@ RESUMES_DIR = ROOT / "resumes"
 OUTPUT_PATH = ROOT / "output" / "results.json"
 
 app = FastAPI(title="Shortlist Resume Screening API", version="0.1.0")
+allowed_origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGIN", "http://127.0.0.1:8000,http://localhost:8000").split(",") if origin.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_methods=["GET", "POST"], allow_headers=["*"])
 app.mount("/assets", StaticFiles(directory=WEB_DIR), name="assets")
 
 
@@ -29,17 +34,17 @@ def read_results() -> dict:
 
 @app.get("/", response_class=FileResponse)
 def index():
-    return FileResponse(WEB_DIR / "index.html")
+    return FileResponse(WEB_DIR / "index.html", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/app.js", response_class=FileResponse)
 def javascript():
-    return FileResponse(WEB_DIR / "app.js", media_type="text/javascript")
+    return FileResponse(WEB_DIR / "app.js", media_type="text/javascript", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/styles.css", response_class=FileResponse)
 def stylesheet():
-    return FileResponse(WEB_DIR / "styles.css", media_type="text/css")
+    return FileResponse(WEB_DIR / "styles.css", media_type="text/css", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/health")
@@ -49,14 +54,16 @@ def health():
 
 @app.get("/api/results")
 def results():
-    return read_results()
+    response = JSONResponse(read_results())
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return response
 
 
 @app.get("/api/results/download")
 def download_results():
     if not OUTPUT_PATH.exists():
         write_results(empty_results(), OUTPUT_PATH)
-    return FileResponse(OUTPUT_PATH, media_type="application/json", filename="results.json")
+    return FileResponse(OUTPUT_PATH, media_type="application/json", filename="results.json", headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/screen")

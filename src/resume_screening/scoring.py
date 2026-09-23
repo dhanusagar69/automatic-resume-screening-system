@@ -6,6 +6,11 @@ PYTHON_TERMS = ["python", "fastapi", "django", "flask", "pytest", "asyncio"]
 AI_TERMS = ["langchain", "langgraph", "llamaindex", "rag", "retrieval augmented", "embedding", "vector search", "agentic", "ai agent", "tool calling", "multi-agent", "google adk", "llm", "large language model"]
 SKILL_TERMS = PYTHON_TERMS + AI_TERMS + ["postgresql", "redis", "docker", "gcp", "react", "next.js", "kafka", "graphql"]
 DEPTH_TERMS = ["pipeline", "evaluation", "evals", "orchestration", "stateful", "workflow", "retrieval", "vector", "tool", "queue", "caching", "cache", "observability", "testing", "concurrency", "async", "failure handling"]
+STRONG_SECTIONS = ("project", "experience", "work", "internship", "employment", "implementation", "backend", "research")
+SKILL_SECTIONS = ("skill", "technology", "tech stack", "competenc", "proficien")
+WEAK_SECTIONS = ("objective", "interest", "hobby", "career goal", "currently learning", "learning")
+IMPLEMENTATION_VERBS = ("built", "developed", "implemented", "designed", "created", "deployed", "integrated", "trained", "engineered", "automated", "added", "used", "using", "wrote")
+INCIDENTAL_PHRASES = ("interested in", "currently learning", "want to learn", "learning about", "familiar with")
 
 
 def _has_term(text: str, term: str) -> bool:
@@ -16,21 +21,66 @@ def matched_skills(text: str) -> list[str]:
     return [term for term in SKILL_TERMS if _has_term(text, term)]
 
 
+def _section_kind(heading: str) -> str:
+    heading = heading.lower()
+    if any(term in heading for term in WEAK_SECTIONS):
+        return "weak"
+    if any(term in heading for term in STRONG_SECTIONS):
+        return "strong"
+    if any(term in heading for term in SKILL_SECTIONS):
+        return "skill"
+    return "other"
+
+
+def _contextual_lines(text: str) -> list[tuple[str, str]]:
+    current_section = "other"
+    contextual = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        normalized = line.strip(" :-|\t").lower()
+        if len(normalized) <= 55 and (normalized.endswith(":") or normalized in {"projects", "experience", "skills", "interests", "objective"}):
+            current_section = _section_kind(normalized.rstrip(":"))
+            continue
+        contextual.append((line, current_section))
+    return contextual
+
+
+def _evidence_lines(text: str, terms: list[str]) -> list[str]:
+    return [line[:220] for line, section in _contextual_lines(text) if section != "weak" and any(_has_term(line, term) for term in terms)][:4]
+
+
+def _requirement_evidence(text: str, terms: list[str]) -> tuple[bool, list[str]]:
+    evidence = []
+    for line, section in _contextual_lines(text):
+        if not any(_has_term(line, term) for term in terms) or section == "weak":
+            continue
+        lower_line = line.lower()
+        if any(phrase in lower_line for phrase in INCIDENTAL_PHRASES):
+            continue
+        has_implementation_language = any(verb in lower_line for verb in IMPLEMENTATION_VERBS)
+        term_count = sum(_has_term(lower_line, term) for term in terms)
+        all_signal_count = sum(_has_term(lower_line, term) for term in SKILL_TERMS)
+        standalone_skill = lower_line.strip() in terms
+        if section == "strong" or section == "skill" or has_implementation_language or term_count >= 2 or all_signal_count >= 2 or standalone_skill:
+            evidence.append(line[:220])
+    return bool(evidence), evidence[:4]
+
+
 def eligibility(resume: Resume) -> tuple[bool, list[str], list[str]]:
-    text = resume.text.lower()
-    python_found = any(_has_term(text, term) for term in PYTHON_TERMS)
-    ai_found = any(_has_term(text, term) for term in AI_TERMS)
+    python_found, _ = _requirement_evidence(resume.text, PYTHON_TERMS)
+    ai_found, _ = _requirement_evidence(resume.text, AI_TERMS)
     reasons = []
     if not python_found:
         reasons.append("No evidence of Python stack")
     if not ai_found:
         reasons.append("No AI/agentic project evidence")
-    return not reasons, reasons, matched_skills(text)
+    return not reasons, reasons, matched_skills(resume.text)
 
 
 def _evidence(text: str, terms: list[str]) -> list[str]:
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    return [line[:220] for line in lines if any(_has_term(line, term) for term in terms)][:4]
+    return _evidence_lines(text, terms)
 
 
 def score_resume(resume: Resume, github: GitHubResult | None = None, llm: LLMAnalysis | None = None) -> CandidateResult:

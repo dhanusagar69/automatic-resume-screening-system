@@ -47,13 +47,24 @@ docker build -t shortlist-screening .
 docker run --rm -p 8000:8000 shortlist-screening
 ```
 
-Configure `GEMINI_API_KEY` as a deployment environment variable, never in the repository.
+Configure `GEMINI_API_KEY` as a deployment environment variable, never in the repository. When the frontend and backend are on different domains, also configure `FRONTEND_ORIGIN` on the backend, for example `https://your-site.netlify.app`.
+
+### Netlify frontend
+
+Netlify hosts the static dashboard only. Deploy the FastAPI backend first using Render or another Python host, then set the backend URL in `web/config.js`:
+
+```javascript
+window.__API_BASE_URL__ = "https://your-backend.onrender.com";
+```
+
+In Netlify, import the GitHub repository, set the publish directory to `web`, leave the build command empty, and deploy. The backend must allow the Netlify site origin through CORS when the domains differ.
 
 `GITHUB_TOKEN` is optional and may be loaded in the shell from `.env.example`. To enable structured Gemini enrichment, set `GEMINI_API_KEY`:
 
 ```powershell
 $env:GEMINI_API_KEY="your-gemini-api-key"
 $env:GEMINI_MODEL="gemini-2.0-flash"
+$env:GITHUB_RECENCY_DAYS="90"
 ```
 
 The model is used only for project-depth judgment and evidence-backed summaries. Hard eligibility remains deterministic, JSON fields are validated and bounded, and missing keys, failed calls, or malformed responses fall back to the heuristic scorer.
@@ -63,6 +74,7 @@ The model is used only for project-depth judgment and evidence-backed summaries.
 - Hard eligibility is deterministic and stays outside any LLM: evidence for both Python and a meaningful AI/agentic concept is required.
 - Ranking favors project evidence and implementation depth over skill-list mentions. Thin LLM wrappers receive a penalty and every result carries matched evidence lines.
 - GitHub enrichment uses two public API calls per profile, is capped at 10 points, and records `failed` or `not_available` instead of blocking screening.
+- GitHub recent activity uses the configurable `GITHUB_RECENCY_DAYS` window; the output explains recent activity, maintained originals, and Python/AI relevance.
 - Parsing is isolated per file, so malformed documents become batch failures while other resumes continue through the pipeline.
 - The optional Gemini adapter in `llm.py` uses structured JSON, clamps scores, treats resume text as untrusted data, and stays behind the deterministic scoring contract.
 
@@ -72,7 +84,7 @@ The JSON contains a batch summary, ranked eligible candidates, rejected candidat
 
 ## If I Had More Time
 
-- Add an OpenAI-compatible structured extraction adapter with Pydantic validation and retry limits.
+- Add Gemini response validation with Pydantic schemas and retry limits.
 - Add persistent per-run GitHub caching and bounded concurrency for larger batches.
 - Add OCR for image-only PDFs and richer section-aware project extraction.
 - Add integration fixtures for real PDF/DOCX parsing and API responses.
