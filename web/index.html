@@ -13,7 +13,7 @@
   <div class="shell">
     <header class="topbar">
       <a class="brand" href="/" aria-label="Shortlist home"><span class="brand-mark">S</span><span>shortlist<span class="brand-dot">.</span></span></a>
-      <div class="topbar-meta"><span class="live-dot"></span><span>Local screening workspace</span><label class="upload-button"><span>Choose resume</span><input id="archive-input" type="file" accept=".zip,.pdf,.docx,.txt,.md,application/zip,application/pdf"></label><span id="file-status" class="file-status">No file selected</span><button id="clear-file" class="clear-file" type="button" hidden aria-label="Clear selected resume">×</button><button id="run-button" class="run-button"><span class="play-icon">▶</span> Run screening</button><a id="download-button" class="download-button" href="/api/results/download" download="results.json"><span>↓</span> Download results</a></div>
+      <div class="topbar-meta"><span class="live-dot"></span><span>Local screening workspace</span><span class="input-hint">ZIP or single resume</span><label class="upload-button"><span>Choose input</span><input id="archive-input" type="file" accept=".zip,.pdf,.docx,.txt,.md,application/zip,application/pdf"></label><span id="file-status" class="file-status">No file selected</span><button id="clear-file" class="clear-file" type="button" hidden aria-label="Clear selected resume">×</button><button id="run-button" class="run-button"><span class="play-icon">▶</span> Run screening</button><a id="download-button" class="download-button" href="/api/results/download" download="results.json"><span>↓</span> Download results</a></div>
     </header>
 
     <main>
@@ -23,7 +23,7 @@
           <h1>Find the signal<br><em>behind the resume.</em></h1>
           <p class="intro-copy">A clear, evidence-backed shortlist for Python engineers building real AI systems.</p>
         </div>
-        <div class="run-note"><span class="folder-icon">⌁</span><div><strong>Watching</strong><br><span>./resumes</span></div></div>
+        <div class="run-note"><span class="folder-icon">⌁</span><div><strong>Input options</strong><br><span>Folder · ZIP · PDF · DOCX · TXT · MD</span></div></div>
       </section>
 
       <section id="summary" class="metrics" aria-label="Screening summary"></section>
