@@ -5,7 +5,7 @@ from .models import Resume
 
 SUPPORTED = {".pdf", ".docx", ".txt", ".md"}
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-GITHUB_RE = re.compile(r"https?://(?:www\.)?github\.com/[A-Za-z0-9-]+/?", re.I)
+GITHUB_RE = re.compile(r"(?<![\w.-])(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9-]+/?", re.I)
 
 
 def _pdf_text(path: Path) -> str:
@@ -41,12 +41,15 @@ def parse_resume(path: Path) -> Resume:
     text = extract_text(path)
     email_match = EMAIL_RE.search(text)
     github_match = GITHUB_RE.search(text)
+    github_url = github_match.group(0).rstrip("/") if github_match else None
+    if github_url and not github_url.lower().startswith(("http://", "https://")):
+        github_url = f"https://{github_url}"
     return Resume(
         path=str(path),
         text=text,
         name=_candidate_name(text, path),
         email=email_match.group(0) if email_match else None,
-        github_url=github_match.group(0).rstrip("/") if github_match else None,
+        github_url=github_url,
     )
 
 
