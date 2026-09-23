@@ -26,3 +26,13 @@ def test_zip_path_traversal_is_rejected(tmp_path):
         assert "Unsafe archive" in str(error)
     else:
         raise AssertionError("Unsafe ZIP path was accepted")
+
+
+def test_single_resume_file_is_screened(tmp_path):
+    resume_path = tmp_path / "candidate.txt"
+    resume_path.write_text("Asha Rao\nPython LangGraph RAG FastAPI", encoding="utf-8")
+
+    payload = screen_input(resume_path)
+
+    assert payload["summary"]["total_resumes"] == 1
+    assert payload["summary"]["eligible"] == 1

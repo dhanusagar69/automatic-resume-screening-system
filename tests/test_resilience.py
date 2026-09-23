@@ -21,7 +21,7 @@ def test_malformed_resume_does_not_abort_batch(tmp_path):
 
 
 def test_invalid_input_is_rejected(tmp_path):
-    with pytest.raises(ValueError, match="directory or .zip"):
+    with pytest.raises(ValueError, match="directory, supported resume file, or .zip"):
         screen_input(tmp_path / "missing.zip")
 
 

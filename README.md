@@ -18,7 +18,7 @@ py main.py --input .\resumes --output .\output\results.json
 py main.py --input .\candidate-resumes.zip --output .\output\results.json
 ```
 
-The `--input` value may be a folder or ZIP file. ZIP paths are checked for path traversal before extraction, supported resumes are processed from a temporary directory, and the temporary files are removed after the run.
+The `--input` value may be a folder, a single PDF/DOCX/TXT/MD resume, or a ZIP file. ZIP paths are checked for path traversal before extraction, supported resumes are processed from a temporary directory, and temporary files are removed after the run.
 
 ## Dashboard
 
@@ -28,7 +28,7 @@ Start the local review dashboard from the project root:
 py web_server.py
 ```
 
-Open http://127.0.0.1:8000. The dashboard reads the generated results. Choose a ZIP archive to screen that upload, or leave it empty to rerun against `./resumes`; then click **Run screening**. Stop it with `Ctrl+C`.
+Open http://127.0.0.1:8000. The dashboard reads the generated results. Choose a ZIP archive or one resume file to screen that upload, or leave it empty to rerun against `./resumes`; then click **Run screening**. Stop it with `Ctrl+C`.
 
 ## Deploy
 

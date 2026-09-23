@@ -72,9 +72,11 @@ async def screen(archive: UploadFile | None = File(default=None)):
         if archive is None:
             payload = screen_directory(RESUMES_DIR)
         else:
-            if not archive.filename or not archive.filename.lower().endswith(".zip"):
-                raise HTTPException(status_code=400, detail="Choose a .zip archive.")
-            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as temporary_file:
+            filename = archive.filename or ""
+            suffix = Path(filename).suffix.lower()
+            if suffix != ".zip" and suffix not in {".pdf", ".docx", ".txt", ".md"}:
+                raise HTTPException(status_code=400, detail="Choose a ZIP archive or PDF, DOCX, TXT, or MD resume.")
+            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temporary_file:
                 temporary_path = Path(temporary_file.name)
                 temporary_file.write(await archive.read())
             try:

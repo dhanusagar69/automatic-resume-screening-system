@@ -38,7 +38,7 @@ function renderDetail(candidate) {
 
 async function loadResults() { const response = await fetch(`${API_BASE}/api/results`, { cache: "no-store" }); render(await response.json()); }
 async function runScreening() { const button = document.querySelector("#run-button"); const archive = document.querySelector("#archive-input").files[0]; const body = archive ? (() => { const form = new FormData(); form.append("archive", archive); return form; })() : undefined; button.disabled = true; button.innerHTML = "Screening..."; try { render(await (await fetch(`${API_BASE}/api/screen`, { method: "POST", body })).json()); } finally { button.disabled = false; button.innerHTML = '<span class="play-icon">▶</span> Run screening'; } }
-function updateFileStatus() { const input = document.querySelector("#archive-input"); const status = document.querySelector("#file-status"); const clear = document.querySelector("#clear-file"); const file = input.files[0]; status.textContent = file ? file.name : "No ZIP selected"; status.classList.toggle("has-file", Boolean(file)); clear.hidden = !file; }
+function updateFileStatus() { const input = document.querySelector("#archive-input"); const status = document.querySelector("#file-status"); const clear = document.querySelector("#clear-file"); const file = input.files[0]; status.textContent = file ? file.name : "No file selected"; status.classList.toggle("has-file", Boolean(file)); clear.hidden = !file; }
 document.querySelector("#run-button").addEventListener("click", runScreening);
 document.querySelector("#archive-input").addEventListener("change", updateFileStatus);
 document.querySelector("#clear-file").addEventListener("click", () => { document.querySelector("#archive-input").value = ""; updateFileStatus(); });

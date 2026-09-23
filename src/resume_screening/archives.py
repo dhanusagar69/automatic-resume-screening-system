@@ -1,6 +1,9 @@
 import zipfile
+import shutil
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+SUPPORTED_INPUT_FILES = {".pdf", ".docx", ".txt", ".md"}
 
 
 def safe_extract_zip(archive_path: Path, destination: Path) -> None:
@@ -24,4 +27,10 @@ def input_directory(input_path: Path):
             safe_extract_zip(input_path, extraction_directory)
             yield extraction_directory
         return
-    raise ValueError(f"Input must be a directory or .zip archive: {input_path}")
+    if input_path.is_file() and input_path.suffix.lower() in SUPPORTED_INPUT_FILES:
+        with TemporaryDirectory(prefix="resume-screening-") as temporary_directory:
+            temporary_path = Path(temporary_directory) / input_path.name
+            shutil.copy2(input_path, temporary_path)
+            yield Path(temporary_directory)
+        return
+    raise ValueError(f"Input must be a directory, supported resume file, or .zip archive: {input_path}")
