@@ -1,0 +1,3 @@
+Maya Singh
+maya@example.com
+Java, React, Spring Boot, MySQL. Built a frontend dashboard and REST APIs.

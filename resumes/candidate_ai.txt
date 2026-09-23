@@ -1,0 +1,3 @@
+Asha Rao
+asha@example.com
+Built a stateful LangGraph RAG agent with Python and FastAPI. Added embeddings, tool calling, PostgreSQL, Docker, pytest and evaluation pipeline.
